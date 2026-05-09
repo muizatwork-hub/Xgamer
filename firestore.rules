@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Entity Validations
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'username', 'email', 'balance', 'xp', 'level', 'streak', 'trustScore', 'isVerified']) &&
+             data.uid == request.auth.uid &&
+             data.username is string && data.username.size() <= 32 &&
+             data.email == request.auth.token.email &&
+             data.balance is number && data.balance >= 0 &&
+             data.xp is number &&
+             data.level is number &&
+             data.streak is number &&
+             data.trustScore is number &&
+             data.isVerified is bool;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['userId', 'amount', 'type', 'status', 'timestamp', 'description']) &&
+             data.userId == request.auth.uid &&
+             data.amount is number &&
+             data.type in ['Earning', 'Withdrawal'] &&
+             data.status in ['Pending', 'Completed', 'Rejected'] &&
+             data.timestamp == request.time &&
+             data.description is string && data.description.size() <= 200;
+    }
+
+    // Rules for Collections
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && 
+                      isValidUser(request.resource.data) &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['username', 'lastActive']) ||
+                   isAdmin();
+    }
+
+    match /offers/{offerId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /transactions/{transactionId} {
+      allow list: if isOwner(resource.data.userId) || isAdmin();
+      allow get: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isOwner(request.resource.data.userId) && isValidTransaction(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /vpn_logs/{logId} {
+      allow read, write: if isAdmin();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Admin Collection (System Only)
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+  }
+}

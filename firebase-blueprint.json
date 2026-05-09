@@ -1,0 +1,83 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account data including balance and trust metrics",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "balance": { "type": "number" },
+        "xp": { "type": "number" },
+        "level": { "type": "number" },
+        "streak": { "type": "number" },
+        "trustScore": { "type": "number" },
+        "isVerified": { "type": "boolean" },
+        "country": { "type": "string" },
+        "isVpnDetected": { "type": "boolean" },
+        "lastActive": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "username", "email", "balance"]
+    },
+    "Offer": {
+      "title": "Offer",
+      "description": "A task or challenge a user can complete for a reward",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "reward": { "type": "number" },
+        "category": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "image": { "type": "string" },
+        "provider": { "type": "string" }
+      }
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A financial entry for earnings or withdrawals",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["Earning", "Withdrawal"] },
+        "status": { "type": "string", "enum": ["Pending", "Completed", "Rejected"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" }
+      }
+    },
+    "VpnLog": {
+      "title": "VPN Log",
+      "description": "Record of suspicious IP or VPN detection",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "ip": { "type": "string" },
+        "isVpn": { "type": "boolean" },
+        "country": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/offers/{offerId}": {
+      "schema": "Offer",
+      "description": "Available gaming and survey offers"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "History of all user earnings and payouts"
+    },
+    "/vpn_logs/{logId}": {
+      "schema": "VpnLog",
+      "description": "Security logs for fraud detection"
+    }
+  }
+}

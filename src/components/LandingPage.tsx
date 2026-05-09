@@ -1,8 +1,14 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Gamepad2, TrendingUp, ShieldCheck, Users, Zap, Gift, ChevronRight, Star, ArrowRight } from 'lucide-react';
+import { useSupabaseAuth } from '../context/SupabaseAuthContext';
 
 export default function LandingPage({ onStart }: { onStart: () => void }) {
+  const { signInWithGoogle } = useSupabaseAuth();
+
+  const handleAuth = () => {
+    onStart();
+  };
   return (
     <div className="min-h-screen bg-[#0F0F10] text-[#F5F5F5] selection:bg-neon-orange/30">
       {/* Navigation */}
@@ -23,9 +29,14 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="text-sm font-display font-bold uppercase tracking-widest px-4 hover:text-neon-orange transition-colors">Login</button>
+            <button 
+              onClick={handleAuth}
+              className="text-sm font-display font-bold uppercase tracking-widest px-4 hover:text-neon-orange transition-colors"
+            >
+              Login
+            </button>
             <button
-              onClick={onStart}
+              onClick={handleAuth}
               className="bg-neon-orange text-black h-10 px-6 rounded font-display font-bold text-xs uppercase tracking-widest hover:bg-orange-glow transition-all shadow-[0_0_15px_rgba(255,122,0,0.2)]"
             >
               Sign Up
@@ -63,7 +74,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
 
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={onStart}
+                onClick={handleAuth}
                 className="orange-button flex items-center justify-center gap-3"
               >
                 Start Earning <ChevronRight className="w-5 h-5" />

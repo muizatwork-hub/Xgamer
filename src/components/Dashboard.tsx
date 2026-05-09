@@ -6,26 +6,18 @@ import {
   CheckCircle2, TrendingUp, Filter, Search, Award
 } from 'lucide-react';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { useSupabaseAuth } from '../context/SupabaseAuthContext';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('Offers');
-  const [trustScore, setTrustScore] = useState(98);
-  const [isVpnDetected, setIsVpnDetected] = useState(false);
+  const { profile, logout } = useSupabaseAuth();
+  const trustScore = profile?.trustScore || 80;
+  const isVpnDetected = profile?.isVpnDetected || false;
 
-  useEffect(() => {
-    // Simulate API fetch for VPN and Trust Score
-    const checkTrust = async () => {
-      try {
-        const res = await fetch('/api/check-ip');
-        const data = await res.json();
-        setTrustScore(data.trustScore);
-        setIsVpnDetected(data.isVpn);
-      } catch (err) {
-        console.error("Failed to check trust", err);
-      }
-    };
-    checkTrust();
-  }, []);
+  const handleLogout = async () => {
+    await logout();
+    window.location.hash = '';
+  };
 
   const chartData = [
     { name: 'Mon', value: 45 },
@@ -103,7 +95,10 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <button className="w-full mt-6 flex items-center gap-4 px-4 py-3 text-white/40 hover:text-warning-red transition-all font-display uppercase tracking-widest text-xs">
+          <button 
+            onClick={handleLogout}
+            className="w-full mt-6 flex items-center gap-4 px-4 py-3 text-white/40 hover:text-warning-red transition-all font-display uppercase tracking-widest text-xs"
+          >
             <LogOut className="w-5 h-5" />
             Sign Out
           </button>
@@ -133,7 +128,7 @@ export default function Dashboard() {
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-bold text-white/30 leading-none mb-1">Balance</span>
-                <span className="text-sm font-display font-bold leading-none">$1,250.40</span>
+                <span className="text-sm font-display font-bold leading-none">${profile?.balance.toFixed(2) || '0.00'}</span>
               </div>
             </div>
 
@@ -143,7 +138,7 @@ export default function Dashboard() {
                 <span className="absolute top-2 right-2 w-2 h-2 bg-neon-orange rounded-full border-2 border-[#0F0F10]" />
               </button>
               <div className="w-10 h-10 rounded-full border-2 border-neon-orange bg-bg-secondary overflow-hidden hover:scale-105 transition-transform cursor-pointer">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=ProGamer" alt="Profile" />
+                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.username || 'Gamer'}`} alt="Profile" />
               </div>
             </div>
           </div>
@@ -156,10 +151,10 @@ export default function Dashboard() {
             {/* Top Stats Cards */}
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: 'Weekly Earnings', value: '$245', icon: TrendingUp, delta: '+12%', color: 'verified-green' },
-                { label: 'XP Level', value: 'Level 42', icon: Award, delta: 'XP 450/1000', color: 'status-blue' },
-                { label: 'Daily Streak', value: '15 Days', icon: Zap, delta: 'Next: 20 Days', color: 'neon-orange' },
-                { label: 'Pending Rewards', value: '$45.00', icon: Clock, delta: '3 Offers', color: 'white/40' },
+                { label: 'Total Balance', value: `$${profile?.balance.toFixed(2) || '0.00'}`, icon: Wallet, delta: '+0%', color: 'verified-green' },
+                { label: 'XP Level', value: `Level ${profile?.level || 1}`, icon: Award, delta: `XP ${profile?.xp || 0}`, color: 'status-blue' },
+                { label: 'Daily Streak', value: `${profile?.streak || 0} Days`, icon: Zap, delta: 'Keep going!', color: 'neon-orange' },
+                { label: 'Trust Status', value: profile?.isVerified ? 'Verified' : 'Unverified', icon: ShieldCheck, delta: `${profile?.trustScore || 80}%`, color: profile?.isVerified ? 'verified-green' : 'white/40' },
               ].map((stat, i) => (
                 <motion.div
                   key={i}
