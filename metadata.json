@@ -1,0 +1,15 @@
+{
+  "name": "XGamer",
+  "description": "A premium futuristic gaming rewards platform where users earn rewards through offers, challenges, and community engagement.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "Firebase Authentication",
+    "Firestore Database",
+    "Real-time Offer Tracking",
+    "Anti-Fraud System"
+  ]
+}

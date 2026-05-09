@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Orbitron", sans-serif;
+
+  --color-bg-primary: #0F0F10;
+  --color-bg-secondary: #1A1C1F;
+  --color-neon-orange: #FF7A00;
+  --color-orange-glow: #FFA94D;
+  --color-verified-green: #00D26A;
+  --color-warning-red: #FF3B3B;
+  --color-status-blue: #00C2FF;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-primary text-[#F5F5F5] font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display text-white;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-bg-secondary/80 backdrop-blur-md border border-white/10 rounded-2xl;
+  }
+
+  .neon-border {
+    @apply border border-neon-orange/30 shadow-[0_0_15px_rgba(255,122,0,0.1)];
+  }
+
+  .neon-text-glow {
+    @apply text-neon-orange drop-shadow-[0_0_8px_rgba(255,122,0,0.5)];
+  }
+
+  .orange-button {
+    @apply bg-neon-orange hover:bg-orange-glow text-black font-bold py-3 px-8 rounded-lg transition-all duration-300 uppercase tracking-wider font-display shadow-[0_0_15px_rgba(255,122,0,0.3)];
+  }
+}
+
