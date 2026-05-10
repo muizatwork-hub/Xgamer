@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Lock, User, Github, Chrome, ArrowRight, Loader2, Gamepad2, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, User, Github, Chrome, ArrowRight, Loader2, Gamepad2, ShieldCheck, Zap } from 'lucide-react';
 import { useSupabaseAuth } from '../context/SupabaseAuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -61,7 +61,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
   return (
     <div className="min-h-screen bg-[#0F0F10] flex items-center justify-center p-6 relative overflow-hidden">
       {/* Background Decor */}
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-neon-orange/10 rounded-full blur-[120px]" />
+      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-neon-blue/10 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-status-blue/10 rounded-full blur-[120px]" />
 
       <motion.div
@@ -78,7 +78,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
           </button>
           
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-10 h-10 bg-neon-orange rounded flex items-center justify-center rotate-45 border-2 border-orange-glow shadow-[0_0_15px_rgba(255,122,0,0.4)]">
+            <div className="w-10 h-10 bg-neon-blue rounded flex items-center justify-center rotate-45 border-2 border-blue-glow shadow-[0_0_15px_rgba(0,163,255,0.4)]">
               <span className="text-black font-display text-2xl -rotate-45 font-black">X</span>
             </div>
             <h1 className="text-3xl font-display font-black tracking-tight">XGAMER</h1>
@@ -92,7 +92,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
             <button
               onClick={() => { setMode('login'); setMessage(null); setError(null); }}
               className={`flex-1 py-3 text-xs font-display font-bold uppercase tracking-widest transition-all rounded-lg ${
-                mode === 'login' ? 'bg-neon-orange text-black' : 'text-white/40 hover:text-white'
+                mode === 'login' ? 'bg-neon-blue text-black' : 'text-white/40 hover:text-white'
               }`}
             >
               Login
@@ -100,7 +100,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
             <button
               onClick={() => { setMode('signup'); setMessage(null); setError(null); }}
               className={`flex-1 py-3 text-xs font-display font-bold uppercase tracking-widest transition-all rounded-lg ${
-                mode === 'signup' ? 'bg-neon-orange text-black' : 'text-white/40 hover:text-white'
+                mode === 'signup' ? 'bg-neon-blue text-black' : 'text-white/40 hover:text-white'
               }`}
             >
               Sign Up
@@ -131,7 +131,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
                       placeholder="GamerTag"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-neon-orange/50 transition-all"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-neon-blue/50 transition-all"
                     />
                   </div>
                 </motion.div>
@@ -148,7 +148,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-neon-orange/50 transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-neon-blue/50 transition-all"
                 />
               </div>
             </div>
@@ -161,7 +161,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
                     <button 
                       type="button"
                       onClick={() => { setMode('forgot'); setError(null); setMessage(null); }}
-                      className="text-[10px] font-bold uppercase tracking-widest text-neon-orange hover:text-orange-glow transition-colors"
+                      className="text-[10px] font-bold uppercase tracking-widest text-neon-blue hover:text-blue-glow transition-colors"
                     >
                       Forgot?
                     </button>
@@ -175,7 +175,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-neon-orange/50 transition-all"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-neon-blue/50 transition-all"
                   />
                 </div>
               </div>
@@ -204,9 +204,24 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
             <button
               disabled={loading}
               type="submit"
-              className="w-full orange-button flex items-center justify-center gap-3 mt-4 h-14"
+              className="w-full blue-button flex items-center justify-center gap-3 mt-4 h-14 disabled:opacity-50 disabled:grayscale transition-all"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : mode === 'login' ? 'Enter Dashboard' : mode === 'signup' ? 'Create Account' : 'Send Reset Link'}
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="animate-pulse">Processing...</span>
+                </>
+              ) : mode === 'login' ? (
+                <>
+                  Enter Dashboard <ArrowRight className="w-4 h-4" />
+                </>
+              ) : mode === 'signup' ? (
+                <>
+                  Create Account <Zap className="w-4 h-4" />
+                </>
+              ) : (
+                'Send Reset Link'
+              )}
             </button>
 
             {mode === 'forgot' && (
@@ -231,7 +246,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
               onClick={signInWithGoogle}
               className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-xl py-4 hover:bg-white/10 transition-all text-xs font-display font-bold uppercase tracking-widest"
             >
-              <Chrome className="w-4 h-4 text-neon-orange" /> Google
+              <Chrome className="w-4 h-4 text-neon-blue" /> Google
             </button>
             <button className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-xl py-4 hover:bg-white/10 transition-all text-xs font-display font-bold uppercase tracking-widest">
               <Gamepad2 className="w-4 h-4 text-status-blue" /> Discord

@@ -33,6 +33,13 @@ function AppContent() {
   }, [user]);
 
   useEffect(() => {
+    if (!loading && !user && (appState === 'dashboard' || appState === 'admin')) {
+      setAppState('landing');
+      window.location.hash = '';
+    }
+  }, [user, loading, appState]);
+
+  useEffect(() => {
     if (!loading && appState === 'loading') {
       // Simulate a bit of loading for the cool effect
       const timer = setTimeout(() => {
@@ -60,7 +67,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F0F10] text-[#F5F5F5] font-sans selection:bg-neon-orange/30 overflow-hidden">
+    <div className="min-h-screen bg-[#0F0F10] text-[#F5F5F5] font-sans selection:bg-neon-blue/30 overflow-hidden">
       <AnimatePresence mode="wait">
         {appState === 'loading' && (
           <motion.div

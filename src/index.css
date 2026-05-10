@@ -7,8 +7,8 @@
 
   --color-bg-primary: #0F0F10;
   --color-bg-secondary: #1A1C1F;
-  --color-neon-orange: #FF7A00;
-  --color-orange-glow: #FFA94D;
+  --color-neon-blue: #00A3FF;
+  --color-blue-glow: #66C7FF;
   --color-verified-green: #00D26A;
   --color-warning-red: #FF3B3B;
   --color-status-blue: #00C2FF;
@@ -30,15 +30,15 @@
   }
 
   .neon-border {
-    @apply border border-neon-orange/30 shadow-[0_0_15px_rgba(255,122,0,0.1)];
+    @apply border border-neon-blue/30 shadow-[0_0_15px_rgba(0,163,255,0.1)];
   }
 
   .neon-text-glow {
-    @apply text-neon-orange drop-shadow-[0_0_8px_rgba(255,122,0,0.5)];
+    @apply text-neon-blue drop-shadow-[0_0_8px_rgba(0,163,255,0.5)];
   }
 
-  .orange-button {
-    @apply bg-neon-orange hover:bg-orange-glow text-black font-bold py-3 px-8 rounded-lg transition-all duration-300 uppercase tracking-wider font-display shadow-[0_0_15px_rgba(255,122,0,0.3)];
+  .blue-button {
+    @apply bg-neon-blue hover:bg-blue-glow text-black font-bold py-3 px-8 rounded-lg transition-all duration-300 uppercase tracking-wider font-display shadow-[0_0_15px_rgba(0,163,255,0.3)];
   }
 }
 

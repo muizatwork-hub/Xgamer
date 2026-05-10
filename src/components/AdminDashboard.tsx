@@ -28,7 +28,7 @@ export default function AdminDashboard() {
       <aside className="w-64 border-r border-[#1A1A1B] flex flex-col">
         <div className="p-8 border-b border-[#1A1A1B]">
           <div className="flex items-center gap-2">
-             <div className="w-6 h-6 bg-warning-red rounded flex items-center justify-center rotate-45">
+             <div className="w-6 h-6 bg-neon-blue rounded flex items-center justify-center rotate-45">
               <Lock className="w-3 h-3 text-black -rotate-45" />
             </div>
             <span className="text-sm font-display font-black tracking-widest">X-ADMIN</span>
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
               key={item}
               onClick={() => setView(item)}
               className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg text-xs font-display font-bold uppercase tracking-widest transition-all ${
-                view === item ? 'bg-warning-red/10 text-warning-red' : 'text-white/20 hover:text-white'
+                view === item ? 'bg-neon-blue/10 text-neon-blue' : 'text-white/20 hover:text-white'
               }`}
             >
               {item === 'Overview' && <Activity className="w-4 h-4" />}
@@ -62,6 +62,13 @@ export default function AdminDashboard() {
             <span className="text-white">{view}</span>
           </div>
           <div className="flex items-center gap-4 text-xs font-display font-bold text-white/40">
+            <button 
+              onClick={() => window.location.hash = 'dashboard'}
+              className="px-3 py-1 bg-white/5 border border-white/10 rounded hover:bg-white/10 transition-all text-white/60"
+            >
+              Exit Admin
+            </button>
+            <span className="text-white/10">|</span>
             <span className="text-verified-green">System Live</span>
             <span className="text-white/10">|</span>
             <span>Admin: SuperUser</span>

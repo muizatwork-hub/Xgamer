@@ -6,6 +6,7 @@ import { User as AppUser } from '../lib/types';
 interface AuthContextType {
   user: User | null;
   profile: AppUser | null;
+  isAdmin: boolean;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -16,13 +17,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function SupabaseAuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AppUser | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check active sessions
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+        checkAdmin(session.user.id);
+      }
       setLoading(false);
     });
 
@@ -31,14 +36,21 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+        checkAdmin(session.user.id);
       } else {
         setProfile(null);
+        setIsAdmin(false);
       }
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkAdmin = async (uid: string) => {
+    const { data } = await supabase.from('admins').select('user_id').eq('user_id', uid).single();
+    setIsAdmin(!!data);
+  };
 
   useEffect(() => {
     const handleUserSync = async () => {
@@ -144,7 +156,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, profile, isAdmin, loading, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

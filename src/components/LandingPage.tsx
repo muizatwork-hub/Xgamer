@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Gamepad2, TrendingUp, ShieldCheck, Users, Zap, Gift, ChevronRight, Star, ArrowRight } from 'lucide-react';
+import { Gamepad2, TrendingUp, ShieldCheck, Users, Zap, Gift, ChevronRight, Star, ArrowRight, Wallet } from 'lucide-react';
 import { useSupabaseAuth } from '../context/SupabaseAuthContext';
 
 export default function LandingPage({ onStart }: { onStart: () => void }) {
@@ -10,34 +10,34 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
     onStart();
   };
   return (
-    <div className="min-h-screen bg-[#0F0F10] text-[#F5F5F5] selection:bg-neon-orange/30">
+    <div className="min-h-screen bg-[#0F0F10] text-[#F5F5F5] selection:bg-neon-blue/30">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-40 bg-[#0F0F10]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-neon-orange rounded flex items-center justify-center rotate-45 border border-orange-glow shadow-[0_0_10px_rgba(255,122,0,0.3)]">
+            <div className="w-8 h-8 bg-neon-blue rounded flex items-center justify-center rotate-45 border border-blue-glow shadow-[0_0_10px_rgba(0,163,255,0.3)]">
               <span className="text-black font-display text-xl -rotate-45 font-black">X</span>
             </div>
             <span className="text-xl font-display font-black tracking-tight">XGAMER</span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-white/60">
-            <a href="#offers" className="hover:text-neon-orange transition-colors">Offers</a>
-            <a href="#rewards" className="hover:text-neon-orange transition-colors">Rewards</a>
-            <a href="#leaderboard" className="hover:text-neon-orange transition-colors">Leaderboard</a>
-            <a href="#faq" className="hover:text-neon-orange transition-colors">FAQ</a>
+            <button onClick={() => document.getElementById('offers')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">Offers</button>
+            <button onClick={() => document.getElementById('rewards')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">Rewards</button>
+            <button onClick={() => document.getElementById('leaderboard')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">Leaderboard</button>
+            <button onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">FAQ</button>
           </div>
 
           <div className="flex items-center gap-4">
             <button 
               onClick={handleAuth}
-              className="text-sm font-display font-bold uppercase tracking-widest px-4 hover:text-neon-orange transition-colors"
+              className="text-sm font-display font-bold uppercase tracking-widest px-4 hover:text-neon-blue transition-colors"
             >
               Login
             </button>
             <button
               onClick={handleAuth}
-              className="bg-neon-orange text-black h-10 px-6 rounded font-display font-bold text-xs uppercase tracking-widest hover:bg-orange-glow transition-all shadow-[0_0_15px_rgba(255,122,0,0.2)]"
+              className="bg-neon-blue text-black h-10 px-6 rounded font-display font-bold text-xs uppercase tracking-widest hover:bg-blue-glow transition-all shadow-[0_0_15px_rgba(0,163,255,0.2)]"
             >
               Sign Up
             </button>
@@ -48,7 +48,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
       {/* Hero Section */}
       <section className="pt-40 pb-20 px-6 relative overflow-hidden">
         {/* Abstract Background Shapes */}
-        <div className="absolute top-20 right-[-10%] w-[600px] h-[600px] bg-neon-orange/10 rounded-full blur-[120px] -z-10" />
+        <div className="absolute top-20 right-[-10%] w-[600px] h-[600px] bg-neon-blue/10 rounded-full blur-[120px] -z-10" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-[#00C2FF]/10 rounded-full blur-[100px] -z-10" />
 
         <div className="max-w-7xl mx-auto grid lg:grid-columns-[1.2fr_0.8fr] gap-12 items-center">
@@ -57,14 +57,14 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-orange/10 border border-neon-orange/20 mb-6">
-              <Zap className="w-4 h-4 text-neon-orange" />
-              <span className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-neon-orange">New Rewards Available</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-blue/10 border border-neon-blue/20 mb-6">
+              <Zap className="w-4 h-4 text-neon-blue" />
+              <span className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-neon-blue">New Rewards Available</span>
             </div>
             
             <h1 className="text-6xl md:text-8xl font-black leading-[0.9] mb-8 tracking-tighter">
               PLAY. COMPLETE. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-orange via-orange-glow to-neon-orange bg-[length:200%_auto] animate-gradient">EARN REAL</span> <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue via-blue-glow to-neon-blue bg-[length:200%_auto] animate-gradient">EARN REAL</span> <br />
               REWARDS.
             </h1>
             
@@ -75,7 +75,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={handleAuth}
-                className="orange-button flex items-center justify-center gap-3"
+                className="blue-button flex items-center justify-center gap-3"
               >
                 Start Earning <ChevronRight className="w-5 h-5" />
               </button>
@@ -95,7 +95,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
               <div>
                 <div className="flex gap-1 mb-1">
                   {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="w-3 h-3 fill-neon-orange text-neon-orange" />
+                    <Star key={i} className="w-3 h-3 fill-neon-blue text-neon-blue" />
                   ))}
                 </div>
                 <p className="text-[10px] uppercase font-bold tracking-widest text-white/40">
@@ -123,8 +123,8 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
                 
                 <div className="absolute bottom-6 left-6 right-6">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="p-2 bg-neon-orange/20 backdrop-blur-md rounded-lg border border-neon-orange/30">
-                      <Gamepad2 className="w-6 h-6 text-neon-orange" />
+                    <div className="p-2 bg-neon-blue/20 backdrop-blur-md rounded-lg border border-neon-blue/30">
+                      <Gamepad2 className="w-6 h-6 text-neon-blue" />
                     </div>
                     <div>
                       <h4 className="text-sm font-display font-bold uppercase tracking-wider">Cyberpunk Challenge</h4>
@@ -136,7 +136,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
                       initial={{ width: 0 }}
                       animate={{ width: '75%' }}
                       transition={{ duration: 2, delay: 1 }}
-                      className="h-full bg-neon-orange shadow-[0_0_10px_#FF7A00]"
+                      className="h-full bg-neon-blue shadow-[0_0_10px_#00A3FF]"
                     />
                   </div>
                 </div>
@@ -181,7 +181,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
             <div key={i} className="flex items-center gap-12 px-12">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-verified-green animate-pulse" />
-                <span className="text-xs font-bold tracking-widest text-white/40">USER_X7 COMPLETE OFFER <span className="text-neon-orange">+$12.50</span></span>
+                <span className="text-xs font-bold tracking-widest text-white/40">USER_X7 COMPLETE OFFER <span className="text-neon-blue">+$12.50</span></span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-verified-green animate-pulse" />
@@ -193,7 +193,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
       </div>
 
       {/* Why Choose XGamer Section */}
-      <section className="py-32 px-6">
+      <section id="rewards" className="py-32 px-6">
         <div className="max-w-7xl mx-auto text-center mb-20">
           <h2 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tight">The X-Gamer Edge</h2>
           <p className="text-white/40 max-w-2xl mx-auto text-lg">Next-generation features built for the modern earner.</p>
@@ -205,7 +205,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
               icon: Zap,
               title: "Instant Verification",
               desc: "Our AI-powered tracking verifies your completions in real-time. No more waiting days for your rewards.",
-              color: "neon-orange"
+              color: "neon-blue"
             },
             {
               icon: ShieldCheck,
@@ -235,6 +235,39 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
         </div>
       </section>
 
+      {/* How to Earn Section */}
+      <section id="how-to-earn" className="py-32 px-6 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-neon-blue/5 blur-[120px] -z-10 rotate-12" />
+        
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tight">The XGamer Cycle</h2>
+            <p className="text-white/40 max-w-2xl mx-auto text-lg">Your journey from player to pro-earner starts here.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-12 relative">
+            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-y-1/2 -z-10" />
+            
+            {[
+              { step: "01", title: "Select Mission", desc: "Choose from hundreds of premium gaming and app offers tailored to your interest.", icon: Gamepad2 },
+              { step: "02", title: "Complete Tasks", desc: "Follow the mission guidelines to complete levels, reach goals, or test new features.", icon: Zap },
+              { step: "03", title: "Instant Payout", desc: "Once verified, rewards are instantly added to your X-Wallet for withdrawal.", icon: Wallet }
+            ].map((step, i) => (
+              <div key={i} className="text-center group">
+                <div className="w-20 h-20 bg-[#1A1C1F] border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:border-neon-blue/50 transition-all duration-500 relative">
+                  <div className="absolute -top-3 -right-3 w-8 h-8 bg-neon-blue text-black font-display font-black text-xs flex items-center justify-center rounded-lg rotate-12 group-hover:rotate-0 transition-transform">
+                    {step.step}
+                  </div>
+                  <step.icon className="w-8 h-8 text-white/40 group-hover:text-neon-blue transition-colors" />
+                </div>
+                <h3 className="text-xl font-display font-black uppercase mb-4">{step.title}</h3>
+                <p className="text-sm text-white/40 leading-relaxed px-4">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Featured Offers Preview */}
       <section id="offers" className="py-32 px-6 bg-white/[0.02]">
         <div className="max-w-7xl mx-auto">
@@ -243,7 +276,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
               <h2 className="text-4xl font-black uppercase tracking-tight mb-4">Trending Missions</h2>
               <p className="text-white/40">Our algorithm selects the best value missions based on your region.</p>
             </div>
-            <button className="group flex items-center gap-2 text-neon-orange font-display font-bold uppercase tracking-widest text-xs hover:text-orange-glow transition-colors">
+            <button className="group flex items-center gap-2 text-neon-blue font-display font-bold uppercase tracking-widest text-xs hover:text-blue-glow transition-colors">
               View All Offers <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -265,8 +298,8 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
                 <div className="p-5">
                   <h4 className="font-display font-bold text-sm mb-4 line-clamp-1">{offer.title}</h4>
                   <div className="flex items-center justify-between">
-                    <span className="text-neon-orange font-display font-bold text-lg">{offer.reward}</span>
-                    <button className="p-2 bg-white/5 rounded-lg hover:bg-neon-orange hover:text-black transition-all">
+                    <span className="text-neon-blue font-display font-bold text-lg">{offer.reward}</span>
+                    <button className="p-2 bg-white/5 rounded-lg hover:bg-neon-blue hover:text-black transition-all">
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -278,7 +311,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-neon-orange">
+      <section id="leaderboard" className="py-20 bg-neon-blue">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 text-center">
           <div>
             <span className="block text-black font-display font-black text-5xl mb-2">120K+</span>
@@ -299,13 +332,36 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section id="faq" className="py-32 px-6 border-t border-white/5">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl font-black uppercase tracking-tight mb-16 text-center">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            {[
+              { q: "How do I earn money?", a: "Complete gaming challenges, app signups, and surveys from our curated list of high-paying offers." },
+              { q: "What is the minimum withdrawal?", a: "You can withdraw as little as $1.00 via PayPal or Crypto once your funds are cleared." },
+              { q: "How long does verification take?", a: "Most offers are verified instantly, but some high-value gaming missions may take up to 24 hours for manual review." },
+              { q: "Is XGamer available worldwide?", a: "Yes, though the availability of specific offers depends on your region and country." }
+            ].map((item, i) => (
+              <div key={i} className="glass-card p-6 hover:bg-white/[0.02] transition-colors cursor-pointer group">
+                <h4 className="font-display font-bold uppercase tracking-wide mb-3 flex items-center justify-between">
+                  {item.q}
+                  <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-neon-blue group-hover:translate-x-1 transition-all" />
+                </h4>
+                <p className="text-sm text-white/40 leading-relaxed">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="pt-32 pb-12 px-6 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-20">
             <div className="col-span-2">
               <div className="flex items-center gap-2 mb-8">
-                <div className="w-8 h-8 bg-neon-orange rounded flex items-center justify-center rotate-45 border border-orange-glow">
+                <div className="w-8 h-8 bg-neon-blue rounded flex items-center justify-center rotate-45 border border-blue-glow">
                   <span className="text-black font-display text-xl -rotate-45 font-black">X</span>
                 </div>
                 <span className="text-xl font-display font-black tracking-tight">XGAMER</span>
@@ -315,7 +371,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
               </p>
               <div className="flex gap-4">
                 {[Users, ShieldCheck, Zap].map((Icon, i) => (
-                  <div key={i} className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center hover:bg-neon-orange hover:text-black transition-all cursor-pointer">
+                  <div key={i} className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center hover:bg-neon-blue hover:text-black transition-all cursor-pointer">
                     <Icon className="w-5 h-5" />
                   </div>
                 ))}
@@ -323,24 +379,36 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
             </div>
             
             <div>
-              <h5 className="font-display font-bold uppercase tracking-wider text-xs mb-8">Resources</h5>
+              <h5 className="font-display font-bold uppercase tracking-wider text-xs mb-8">Quick Links</h5>
               <ul className="space-y-4 text-sm text-white/40">
-                <li className="hover:text-white cursor-pointer transition-colors">Offer Guide</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Affiliate Program</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Community</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Help Center</li>
+                <li onClick={() => document.getElementById('how-to-earn')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white cursor-pointer transition-colors">How to Earn</li>
+                <li onClick={() => document.getElementById('offers')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white cursor-pointer transition-colors">Premium Offers</li>
+                <li onClick={() => document.getElementById('rewards')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white cursor-pointer transition-colors">Reward Methods</li>
+                <li onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white cursor-pointer transition-colors">Support FAQ</li>
               </ul>
             </div>
 
             <div>
-              <h5 className="font-display font-bold uppercase tracking-wider text-xs mb-8">Legal</h5>
-              <ul className="space-y-4 text-sm text-white/40">
-                <li className="hover:text-white cursor-pointer transition-colors">Privacy Policy</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Terms of Service</li>
-                <li className="hover:text-white cursor-pointer transition-colors">AML / KYC</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Anti-Fraud Policy</li>
-              </ul>
+              <h5 className="font-display font-bold uppercase tracking-wider text-xs mb-8">Data & Privacy</h5>
+              <div className="space-y-4 text-[10px] uppercase tracking-widest leading-loose text-white/30 font-bold">
+                <p>We use industry-standard encryption to protect your transaction data.</p>
+                <p>Your data is strictly used for offer verification and fraud prevention.</p>
+                <p>We do not sell your personal information to third parties.</p>
+                <div className="pt-4 flex gap-4 text-white/60">
+                   <button className="hover:text-neon-blue">Privacy Detail</button>
+                   <button className="hover:text-neon-blue">Data Usage</button>
+                </div>
+              </div>
             </div>
+          </div>
+
+          <div className="mt-12 p-8 border border-white/5 bg-white/[0.01] rounded-2xl">
+            <h6 className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-neon-blue">Terms of Service Abstract</h6>
+            <p className="text-xs text-white/40 leading-relaxed">
+              By using XGamer, you agree to our anti-fraud policy which strictly prohibits the use of VPNs, Proxies, or automated scripts. 
+              Violation of these terms will result in immediate permanent account suspension and forfeiture of all accumulated rewards.
+              Payouts are subject to manual review for security purposes.
+            </p>
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-white/5 gap-8">

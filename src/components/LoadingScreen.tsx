@@ -50,7 +50,7 @@ export default function LoadingScreen({ onFinish }: { onFinish: () => void }) {
           opacity: [0.1, 0.2, 0.1],
         }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute w-[500px] h-[500px] bg-neon-orange rounded-full blur-[120px]"
+        className="absolute w-[500px] h-[500px] bg-neon-blue rounded-full blur-[120px]"
       />
 
       <div className="relative z-10 flex flex-col items-center">
@@ -61,7 +61,7 @@ export default function LoadingScreen({ onFinish }: { onFinish: () => void }) {
           className="mb-12"
         >
           <div className="flex items-center gap-2">
-            <div className="w-12 h-12 bg-neon-orange rounded-lg flex items-center justify-center rotate-45 border-2 border-orange-glow shadow-[0_0_20px_rgba(255,122,0,0.5)]">
+            <div className="w-12 h-12 bg-neon-blue rounded-lg flex items-center justify-center rotate-45 border-2 border-blue-glow shadow-[0_0_20px_rgba(0,163,255,0.5)]">
               <span className="text-black font-display text-4xl -rotate-45 font-black">X</span>
             </div>
             <h1 className="text-4xl font-display font-black tracking-tighter">
@@ -77,7 +77,7 @@ export default function LoadingScreen({ onFinish }: { onFinish: () => void }) {
               cx="64"
               cy="64"
               r="60"
-              stroke="rgba(255,122,0,0.1)"
+              stroke="rgba(0,163,255,0.1)"
               strokeWidth="4"
               fill="transparent"
             />
@@ -85,16 +85,16 @@ export default function LoadingScreen({ onFinish }: { onFinish: () => void }) {
               cx="64"
               cy="64"
               r="60"
-              stroke="#FF7A00"
+              stroke="#00A3FF"
               strokeWidth="4"
               fill="transparent"
               strokeDasharray={377}
               strokeDashoffset={377 - (377 * progress) / 100}
-              className="drop-shadow-[0_0_8px_rgba(255,122,0,0.5)]"
+              className="drop-shadow-[0_0_8px_rgba(0,163,255,0.5)]"
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xl font-display font-bold text-neon-orange">{progress}%</span>
+            <span className="text-xl font-display font-bold text-neon-blue">{progress}%</span>
           </div>
         </div>
 
@@ -132,7 +132,7 @@ export default function LoadingScreen({ onFinish }: { onFinish: () => void }) {
               ease: "linear",
               delay: Math.random() * 5,
             }}
-            className="absolute w-1 h-1 bg-neon-orange rounded-full"
+            className="absolute w-1 h-1 bg-neon-blue rounded-full"
           />
         ))}
       </div>
