@@ -1,10 +1,13 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { Gamepad2, TrendingUp, ShieldCheck, Users, Zap, Gift, ChevronRight, Star, ArrowRight, Wallet } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Gamepad2, TrendingUp, ShieldCheck, Users, Zap, Gift, ChevronRight, Star, ArrowRight, Wallet, X } from 'lucide-react';
 import { useSupabaseAuth } from '../context/SupabaseAuthContext';
+import LegalModal from './LegalModal';
+import Footer from './Footer';
 
 export default function LandingPage({ onStart }: { onStart: () => void }) {
   const { signInWithGoogle } = useSupabaseAuth();
+  const [legalType, setLegalType] = useState<'terms' | 'privacy' | 'cookie' | null>(null);
 
   const handleAuth = () => {
     onStart();
@@ -22,10 +25,12 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-white/60">
+            <button onClick={() => document.getElementById('how-to-earn')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">How it Works</button>
             <button onClick={() => document.getElementById('offers')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">Offers</button>
             <button onClick={() => document.getElementById('rewards')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">Rewards</button>
-            <button onClick={() => document.getElementById('leaderboard')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">Leaderboard</button>
+            <button onClick={() => document.getElementById('leaderboard')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">Masters</button>
             <button onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">FAQ</button>
+            <button onClick={() => document.getElementById('support')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-neon-blue transition-colors">Support</button>
           </div>
 
           <div className="flex items-center gap-4">
@@ -355,72 +360,13 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="pt-32 pb-12 px-6 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-20">
-            <div className="col-span-2">
-              <div className="flex items-center gap-2 mb-8">
-                <div className="w-8 h-8 bg-neon-blue rounded flex items-center justify-center rotate-45 border border-blue-glow">
-                  <span className="text-black font-display text-xl -rotate-45 font-black">X</span>
-                </div>
-                <span className="text-xl font-display font-black tracking-tight">XGAMER</span>
-              </div>
-              <p className="text-white/40 max-w-sm mb-8 leading-relaxed">
-                The world's most advanced gaming rewards platform. Built using high-performance tech to deliver real value to real gamers.
-              </p>
-              <div className="flex gap-4">
-                {[Users, ShieldCheck, Zap].map((Icon, i) => (
-                  <div key={i} className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center hover:bg-neon-blue hover:text-black transition-all cursor-pointer">
-                    <Icon className="w-5 h-5" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <h5 className="font-display font-bold uppercase tracking-wider text-xs mb-8">Quick Links</h5>
-              <ul className="space-y-4 text-sm text-white/40">
-                <li onClick={() => document.getElementById('how-to-earn')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white cursor-pointer transition-colors">How to Earn</li>
-                <li onClick={() => document.getElementById('offers')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white cursor-pointer transition-colors">Premium Offers</li>
-                <li onClick={() => document.getElementById('rewards')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white cursor-pointer transition-colors">Reward Methods</li>
-                <li onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white cursor-pointer transition-colors">Support FAQ</li>
-              </ul>
-            </div>
+      <Footer onLegalClick={setLegalType} onNavigate={onStart} />
 
-            <div>
-              <h5 className="font-display font-bold uppercase tracking-wider text-xs mb-8">Data & Privacy</h5>
-              <div className="space-y-4 text-[10px] uppercase tracking-widest leading-loose text-white/30 font-bold">
-                <p>We use industry-standard encryption to protect your transaction data.</p>
-                <p>Your data is strictly used for offer verification and fraud prevention.</p>
-                <p>We do not sell your personal information to third parties.</p>
-                <div className="pt-4 flex gap-4 text-white/60">
-                   <button className="hover:text-neon-blue">Privacy Detail</button>
-                   <button className="hover:text-neon-blue">Data Usage</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-12 p-8 border border-white/5 bg-white/[0.01] rounded-2xl">
-            <h6 className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-neon-blue">Terms of Service Abstract</h6>
-            <p className="text-xs text-white/40 leading-relaxed">
-              By using XGamer, you agree to our anti-fraud policy which strictly prohibits the use of VPNs, Proxies, or automated scripts. 
-              Violation of these terms will result in immediate permanent account suspension and forfeiture of all accumulated rewards.
-              Payouts are subject to manual review for security purposes.
-            </p>
-          </div>
-
-          <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-white/5 gap-8">
-            <p className="text-xs text-white/20 uppercase tracking-widest font-display">© 2026 XGamer Global LTD. All Rights Reserved.</p>
-            <div className="flex items-center gap-12">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-4 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" alt="Bitcoin" className="h-5 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_logo%2C_revised_2016.svg" alt="Stripe" className="h-5 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all" />
-            </div>
-          </div>
-        </div>
-      </footer>
+      <AnimatePresence>
+        {legalType && (
+          <LegalModal type={legalType} onClose={() => setLegalType(null)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

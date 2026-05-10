@@ -6,6 +6,8 @@ export interface User {
   xp: number;
   level: number;
   streak: number;
+  claimStreak: number;
+  lastClaimedAt?: string;
   isVerified: boolean;
   trustScore: number; // 0-100
   country?: string;

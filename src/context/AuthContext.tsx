@@ -36,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             xp: 0,
             level: 1,
             streak: 0,
+            claimStreak: 0,
             isVerified: false,
             trustScore: 80,
           };

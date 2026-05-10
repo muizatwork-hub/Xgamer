@@ -9,6 +9,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  updateProfile: (data: Partial<AppUser>) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -112,6 +113,8 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
               xp: 0,
               level: 1,
               streak: 0,
+              claim_streak: 0,
+              last_claimed_at: null,
               trust_score: 80,
               is_verified: false
             }
@@ -132,11 +135,13 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     id: dbProfile.id,
     username: dbProfile.username,
     email: user?.email || '',
-    balance: dbProfile.balance,
-    xp: dbProfile.xp,
-    level: dbProfile.level,
-    streak: dbProfile.streak,
-    trustScore: dbProfile.trust_score,
+    balance: Number(dbProfile.balance || 0),
+    xp: Number(dbProfile.xp || 0),
+    level: Number(dbProfile.level || 1),
+    streak: Number(dbProfile.streak || 0),
+    claimStreak: Number(dbProfile.claim_streak || 0),
+    lastClaimedAt: dbProfile.last_claimed_at,
+    trustScore: Number(dbProfile.trust_score || 80),
     isVerified: dbProfile.is_verified,
     country: dbProfile.country,
     isVpnDetected: dbProfile.is_vpn_detected
@@ -155,8 +160,39 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     await supabase.auth.signOut();
   };
 
+  const updateProfile = async (updates: Partial<AppUser>) => {
+    if (!user) return;
+
+    // Convert AppUser keys back to DB keys if necessary
+    const dbUpdates: any = { ...updates };
+    if ('balance' in updates) dbUpdates.balance = Number(updates.balance);
+    if ('claimStreak' in updates) dbUpdates.claim_streak = updates.claimStreak;
+    if ('lastClaimedAt' in updates) dbUpdates.last_claimed_at = updates.lastClaimedAt;
+    if ('trustScore' in updates) dbUpdates.trust_score = updates.trustScore;
+    if ('isVerified' in updates) dbUpdates.is_verified = updates.isVerified;
+    if ('isVpnDetected' in updates) dbUpdates.is_vpn_detected = updates.isVpnDetected;
+    
+    // Remove the camelCase keys that were converted
+    delete dbUpdates.claimStreak;
+    delete dbUpdates.lastClaimedAt;
+    delete dbUpdates.trustScore;
+    delete dbUpdates.isVerified;
+    delete dbUpdates.isVpnDetected;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(dbUpdates)
+      .eq('id', user.id);
+
+    if (!error) {
+      await fetchProfile(user.id);
+    } else {
+      console.error("Profile update error", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, isAdmin, loading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, profile, isAdmin, loading, signInWithGoogle, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );
