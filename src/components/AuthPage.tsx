@@ -11,6 +11,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +34,7 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
           options: {
             data: {
               full_name: username,
+              referred_by: referralCode.trim() || null,
             }
           }
         });
@@ -137,6 +139,29 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-neon-blue/50 transition-all"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence mode="wait">
+                {mode === 'signup' && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="space-y-2 overflow-hidden"
+                  >
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1">Referral Code (Optional)</label>
+                    <div className="relative border border-neon-blue/20 rounded-xl bg-neon-blue/[0.02]">
+                      <Zap className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-blue/40" />
+                      <input
+                        type="text"
+                        placeholder="XG-REF"
+                        value={referralCode}
+                        onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                        className="w-full bg-transparent py-4 pl-12 pr-4 text-sm focus:outline-none transition-all uppercase font-mono tracking-widest"
                       />
                     </div>
                   </motion.div>

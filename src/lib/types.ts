@@ -17,6 +17,7 @@ export interface User {
   country?: string;
   isVpnDetected?: boolean;
   referralCode?: string;
+  referredBy?: string;
 }
 
 export interface Offer {

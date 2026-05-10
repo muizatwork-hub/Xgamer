@@ -140,6 +140,15 @@ export default function OfferModal({ offer, onClose }: OfferModalProps) {
                   </>
                 )}
               </button>
+              
+              {!isCompleted && !isClaiming && (
+                <button
+                  onClick={onClose}
+                  className="px-8 h-14 bg-white/5 border border-white/10 rounded-xl font-display font-bold uppercase tracking-widest text-[10px] text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
             
             {isCompleted && (

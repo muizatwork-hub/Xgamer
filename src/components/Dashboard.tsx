@@ -214,11 +214,23 @@ export default function Dashboard() {
         const currentStreak = profile?.claimStreak || 0;
         const lastClaimed = profile?.lastClaimedAt;
         const now = new Date();
-        const canClaim = !lastClaimed || now.toDateString() !== new Date(lastClaimed).toDateString();
+        const canClaim = !lastClaimed || new Date(now).toDateString() !== new Date(lastClaimed).toDateString();
         const needsTaskToReset = currentStreak >= 7;
 
+        // Calculate time until next UTC day
+        const nextDay = new Date();
+        nextDay.setUTCHours(24, 0, 0, 0);
+        const diff = nextDay.getTime() - now.getTime();
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
         const handleClaimBonus = async () => {
-          if (!canClaim || !profile) return;
+          if (!profile) return;
+          if (!canClaim) {
+            setWithdrawError("You have already claimed today's reward. Come back tomorrow!");
+            setTimeout(() => setWithdrawError(null), 5000);
+            return;
+          }
 
           // Check for broken streak (missed more than 48h)
           const isStreakBroken = lastClaimed && (now.getTime() - new Date(lastClaimed).getTime()) > 172800000;
@@ -228,12 +240,14 @@ export default function Dashboard() {
               await updateProfile({
                 claimStreak: 0
               });
-              setWithdrawError("Streak Broken: You missed a day. Process reset to Day 1.");
+              setWithdrawError("Streak Broken: You missed a day. Progress reset to Day 1.");
+              setTimeout(() => setWithdrawError(null), 5000);
+              return;
             } catch (err) {
               setWithdrawError("Failed to reset streak.");
+              setTimeout(() => setWithdrawError(null), 5000);
+              return;
             }
-            setTimeout(() => setWithdrawError(null), 5000);
-            return;
           }
 
           if (needsTaskToReset) {
@@ -251,6 +265,7 @@ export default function Dashboard() {
                setTimeout(() => setWithdrawSuccess(null), 5000);
              } catch (err) {
                setWithdrawError("Unlock failed. Try again.");
+               setTimeout(() => setWithdrawError(null), 5000);
              }
              return;
           }
@@ -265,10 +280,10 @@ export default function Dashboard() {
               claimStreak: currentStreak + 1,
               lastClaimedAt: now.toISOString()
             });
-            setWithdrawSuccess(`Success! $${reward.toFixed(2)} added to your dashboard balance.`);
+            setWithdrawSuccess(`Success! $${reward.toFixed(2)} added to your legacy balance.`);
             setTimeout(() => setWithdrawSuccess(null), 5000);
-          } catch (err) {
-            setWithdrawError("Connection error. Claim failed.");
+          } catch (err: any) {
+            setWithdrawError(`Claim failed: ${err.message || "Database connection error"}`);
             setTimeout(() => setWithdrawError(null), 5000);
           }
         };
@@ -335,9 +350,9 @@ export default function Dashboard() {
                   <div className="text-center space-y-4">
                     <div className="flex items-center justify-center gap-3 text-white/20">
                       <Clock className="w-5 h-5" />
-                      <span className="text-xs font-black uppercase tracking-widest">Next Claim Available in 14:22:05</span>
+                      <span className="text-xs font-black uppercase tracking-widest">Next Claim in {hours}h {minutes}m</span>
                     </div>
-                    <p className="text-[10px] uppercase font-bold text-white/10 italic">Rewards reset at 00:00 UTC</p>
+                    <p className="text-[10px] uppercase font-bold text-verified-green italic">Day {currentStreak} Claimed Successfully</p>
                   </div>
                 )}
               </div>

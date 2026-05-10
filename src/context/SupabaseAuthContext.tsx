@@ -121,7 +121,8 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
               last_withdrawal_at: null,
               trust_score: 80,
               is_verified: false,
-              referral_code: user?.user_metadata?.username ? `${user.user_metadata.username.toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}` : `XG${Math.floor(100000 + Math.random() * 900000)}`
+              referral_code: user?.user_metadata?.username ? `${user.user_metadata.username.toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}` : `XG${Math.floor(100000 + Math.random() * 900000)}`,
+              referred_by: user?.user_metadata?.referred_by || null
             }
           ])
           .select()
@@ -154,7 +155,8 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     isVerified: dbProfile.is_verified,
     country: dbProfile.country,
     isVpnDetected: dbProfile.is_vpn_detected,
-    referralCode: dbProfile.referral_code
+    referralCode: dbProfile.referral_code,
+    referredBy: dbProfile.referred_by
   });
 
   const signInWithGoogle = async () => {
