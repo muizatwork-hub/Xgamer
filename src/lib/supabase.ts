@@ -3,14 +3,30 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn("Supabase credentials missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your secrets.");
+if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('placeholder')) {
+  console.error("❌ SUPABASE CONFIG ERROR: You must set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in the Secrets panel (Settings -> Secrets) in AI Studio.");
 }
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder'
 );
+
+// Diagnostic Tool
+export const checkSupabaseConnection = async () => {
+  try {
+    const { data, error } = await supabase.from('offers').select('count', { count: 'exact', head: true });
+    if (error) throw error;
+    return { status: 'connected', message: 'Successfully connected to Supabase.' };
+  } catch (err: any) {
+    return { 
+      status: 'error', 
+      message: err.message === 'Failed to fetch' 
+        ? 'Network Error: Check if your Supabase URL is correct and not blocked by an ad-blocker.' 
+        : err.message 
+    };
+  }
+};
 
 // Database Helper Utilities
 export const db = {

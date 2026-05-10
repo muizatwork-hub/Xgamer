@@ -48,7 +48,11 @@ export default function AuthPage({ onBack }: { onBack: () => void }) {
         if (signInError) throw signInError;
       }
     } catch (err: any) {
-      setError(err.message);
+      if (err.message === 'Failed to fetch') {
+        setError("Network error: Could not reach Supabase. Check your API URL in Secrets.");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
