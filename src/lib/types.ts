@@ -10,8 +10,13 @@ export interface User {
   lastClaimedAt?: string;
   isVerified: boolean;
   trustScore: number; // 0-100
+  dailyWithdrawn: number;
+  weeklyWithdrawn: number;
+  monthlyWithdrawn: number;
+  lastWithdrawalAt?: string;
   country?: string;
   isVpnDetected?: boolean;
+  referralCode?: string;
 }
 
 export interface Offer {

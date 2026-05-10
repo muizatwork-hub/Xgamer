@@ -109,14 +109,19 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
             { 
               id: uid, 
               username: user?.user_metadata?.full_name || 'XGamer',
-              balance: 0,
+              balance: 0.000,
               xp: 0,
               level: 1,
               streak: 0,
               claim_streak: 0,
               last_claimed_at: null,
+              daily_withdrawn: 0,
+              weekly_withdrawn: 0,
+              monthly_withdrawn: 0,
+              last_withdrawal_at: null,
               trust_score: 80,
-              is_verified: false
+              is_verified: false,
+              referral_code: user?.user_metadata?.username ? `${user.user_metadata.username.toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}` : `XG${Math.floor(100000 + Math.random() * 900000)}`
             }
           ])
           .select()
@@ -141,10 +146,15 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     streak: Number(dbProfile.streak || 0),
     claimStreak: Number(dbProfile.claim_streak || 0),
     lastClaimedAt: dbProfile.last_claimed_at,
+    dailyWithdrawn: Number(dbProfile.daily_withdrawn || 0),
+    weeklyWithdrawn: Number(dbProfile.weekly_withdrawn || 0),
+    monthlyWithdrawn: Number(dbProfile.monthly_withdrawn || 0),
+    lastWithdrawalAt: dbProfile.last_withdrawal_at,
     trustScore: Number(dbProfile.trust_score || 80),
     isVerified: dbProfile.is_verified,
     country: dbProfile.country,
-    isVpnDetected: dbProfile.is_vpn_detected
+    isVpnDetected: dbProfile.is_vpn_detected,
+    referralCode: dbProfile.referral_code
   });
 
   const signInWithGoogle = async () => {
@@ -161,33 +171,53 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   };
 
   const updateProfile = async (updates: Partial<AppUser>) => {
-    if (!user) return;
+    if (!user || !profile) return;
 
-    // Convert AppUser keys back to DB keys if necessary
-    const dbUpdates: any = { ...updates };
+    // Strictly map AppUser fields to Database column names
+    const dbUpdates: any = {};
+    
+    // Only include fields that exist in the 'profiles' table
     if ('balance' in updates) dbUpdates.balance = Number(updates.balance);
+    if ('username' in updates) dbUpdates.username = updates.username;
+    if ('xp' in updates) dbUpdates.xp = updates.xp;
+    if ('level' in updates) dbUpdates.level = updates.level;
+    if ('streak' in updates) dbUpdates.streak = updates.streak;
     if ('claimStreak' in updates) dbUpdates.claim_streak = updates.claimStreak;
     if ('lastClaimedAt' in updates) dbUpdates.last_claimed_at = updates.lastClaimedAt;
+    if ('dailyWithdrawn' in updates) dbUpdates.daily_withdrawn = updates.dailyWithdrawn;
+    if ('weeklyWithdrawn' in updates) dbUpdates.weekly_withdrawn = updates.weeklyWithdrawn;
+    if ('monthlyWithdrawn' in updates) dbUpdates.monthly_withdrawn = updates.monthlyWithdrawn;
+    if ('lastWithdrawalAt' in updates) dbUpdates.last_withdrawal_at = updates.lastWithdrawalAt;
     if ('trustScore' in updates) dbUpdates.trust_score = updates.trustScore;
     if ('isVerified' in updates) dbUpdates.is_verified = updates.isVerified;
+    if ('country' in updates) dbUpdates.country = updates.country;
     if ('isVpnDetected' in updates) dbUpdates.is_vpn_detected = updates.isVpnDetected;
-    
-    // Remove the camelCase keys that were converted
-    delete dbUpdates.claimStreak;
-    delete dbUpdates.lastClaimedAt;
-    delete dbUpdates.trustScore;
-    delete dbUpdates.isVerified;
-    delete dbUpdates.isVpnDetected;
+    if ('referralCode' in updates) dbUpdates.referral_code = updates.referralCode;
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(dbUpdates)
-      .eq('id', user.id);
+    // Optimistic Update for UI responsiveness
+    const optimisticProfile = { ...profile, ...updates };
+    setProfile(optimisticProfile);
 
-    if (!error) {
-      await fetchProfile(user.id);
-    } else {
-      console.error("Profile update error", error);
+    try {
+      const { data: updatedData, error } = await supabase
+        .from('profiles')
+        .update(dbUpdates)
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Supabase Database Error:", error.message, error.details);
+        // Revert optimistic update on error by re-fetching actual DB state
+        await fetchProfile(user.id);
+        throw new Error(error.message);
+      } else if (updatedData) {
+        // Sync state with the data returned from database
+        setProfile(mapProfile(updatedData));
+      }
+    } catch (err) {
+      console.error("Profile update failed:", err);
+      throw err;
     }
   };
 

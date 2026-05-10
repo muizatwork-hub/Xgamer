@@ -4,7 +4,7 @@ import {
   Gamepad2, Wallet, Zap, Users, Trophy, Settings, LogOut, 
   Bell, ChevronUp, Clock, ShieldCheck, AlertTriangle, 
   CheckCircle2, TrendingUp, Filter, Search, Award, Menu, X,
-  MessageSquare, Send, MessageCircle, Music, Facebook, Twitter
+  MessageSquare, Send, MessageCircle, Music, Facebook, Twitter, User, Mail
 } from 'lucide-react';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { useSupabaseAuth } from '../context/SupabaseAuthContext';
@@ -21,9 +21,53 @@ export default function Dashboard() {
   const [withdrawalAddress, setWithdrawalAddress] = useState('');
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
   const { profile, logout, isAdmin, updateProfile } = useSupabaseAuth();
   const trustScore = profile?.trustScore || 80;
   const isVpnDetected = profile?.isVpnDetected || false;
+
+  const getWithdrawalLimits = (score: number) => {
+    if (score < 50) return { daily: 5, weekly: 20, monthly: 50 };
+    if (score < 80) return { daily: 25, weekly: 100, monthly: 300 };
+    return { daily: 100, weekly: 500, monthly: 2000 };
+  };
+
+  const limits = getWithdrawalLimits(trustScore);
+
+  const resetLimitsIfExpired = async () => {
+    if (!profile || !profile.lastWithdrawalAt) return;
+    
+    const last = new Date(profile.lastWithdrawalAt);
+    const now = new Date();
+    const diffMs = now.getTime() - last.getTime();
+    
+    const updates: any = {};
+    
+    // Check daily (24h)
+    if (diffMs > 86400000) {
+      updates.dailyWithdrawn = 0;
+    }
+    
+    // Check weekly (7d)
+    if (diffMs > 604800000) {
+      updates.weeklyWithdrawn = 0;
+    }
+    
+    // Check monthly (30d)
+    if (diffMs > 2592000000) {
+      updates.monthlyWithdrawn = 0;
+    }
+    
+    if (Object.keys(updates).length > 0) {
+      await updateProfile(updates);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'Wallet') {
+      resetLimitsIfExpired();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     setIsTabLoading(true);
@@ -56,12 +100,12 @@ export default function Dashboard() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'Offers':
+      case 'Offers': {
         return (
           <div className="space-y-8">
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: 'Total Balance', value: `$${profile?.balance.toFixed(3) || '0.000'}`, icon: Wallet, delta: '+0%', color: 'verified-green' },
+                { label: 'Total Balance', value: `$${profile?.balance.toFixed(2) || '0.00'}`, icon: Wallet, delta: '+0%', color: 'verified-green' },
                 { label: 'XP Level', value: `Level ${profile?.level || 1}`, icon: Award, delta: `XP ${profile?.xp || 0}`, color: 'status-blue' },
                 { label: 'Daily Streak', value: `${profile?.streak || 0} Days`, icon: Zap, delta: 'Keep going!', color: 'neon-blue' },
                 { label: 'Trust Status', value: profile?.isVerified ? 'Verified' : 'Unverified', icon: ShieldCheck, delta: `${profile?.trustScore || 80}%`, color: profile?.isVerified ? 'verified-green' : 'white/40' },
@@ -164,8 +208,9 @@ export default function Dashboard() {
             </div>
           </div>
         );
-      case 'Daily Bonus':
-        const rewards = [0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007];
+      }
+      case 'Daily Bonus': {
+        const rewards = [0.10, 0.15, 0.20, 0.30, 0.40, 0.60, 1.00];
         const currentStreak = profile?.claimStreak || 0;
         const lastClaimed = profile?.lastClaimedAt;
         const now = new Date();
@@ -175,47 +220,57 @@ export default function Dashboard() {
         const handleClaimBonus = async () => {
           if (!canClaim || !profile) return;
 
-          // Check for broken streak
-          const isStreakBroken = lastClaimed && (now.getTime() - new Date(lastClaimed).getTime()) > 86400000 * 2;
+          // Check for broken streak (missed more than 48h)
+          const isStreakBroken = lastClaimed && (now.getTime() - new Date(lastClaimed).getTime()) > 172800000;
           
           if (isStreakBroken) {
-            await updateProfile({
-              claimStreak: 0
-            });
-            setWithdrawError("Streak Broken: You missed a day. Your progress has been reset to Day 1.");
+            try {
+              await updateProfile({
+                claimStreak: 0
+              });
+              setWithdrawError("Streak Broken: You missed a day. Process reset to Day 1.");
+            } catch (err) {
+              setWithdrawError("Failed to reset streak.");
+            }
             setTimeout(() => setWithdrawError(null), 5000);
             return;
           }
 
           if (needsTaskToReset) {
-             // Check if they've earned at least $2 desde last reset? 
-             // For now, we'll simulate this check
-             if (profile.balance < 2) {
-                setWithdrawError("Mission Required: Complete a task of at least $2.00 to unlock your next reward cycle.");
+             if ((profile.balance || 0) < 2) {
+                setWithdrawError("Requirement: Complete a $2.00 mission to unlock next 7-day cycle.");
                 setTimeout(() => setWithdrawError(null), 5000);
                 return;
              }
              
-             // Reset streak
-             await updateProfile({
-               claimStreak: 0,
-               lastClaimedAt: undefined // Allow immediate claim of Day 1 or wait for tomorrow?
-               // The prompt says "after 7 days user most complete a task of at leatst 2$ to claim"
-             });
-             setWithdrawSuccess("Cycle Unlocked! You can now start your next 7-day streak.");
-             setTimeout(() => setWithdrawSuccess(null), 3000);
+             try {
+               await updateProfile({
+                 claimStreak: 0
+               });
+               setWithdrawSuccess("Next cycle unlocked! Claim your Day 1 reward now.");
+               setTimeout(() => setWithdrawSuccess(null), 5000);
+             } catch (err) {
+               setWithdrawError("Unlock failed. Try again.");
+             }
              return;
           }
 
-          const reward = rewards[currentStreak];
-          await updateProfile({
-            balance: (profile.balance || 0) + reward,
-            claimStreak: currentStreak + 1,
-            lastClaimedAt: now.toISOString()
-          });
+          const reward = rewards[currentStreak] || 0;
+          const currentBalance = Number(profile.balance || 0);
+          const newBalance = Number((currentBalance + reward).toFixed(2));
 
-          setWithdrawSuccess(`Success! $${reward.toFixed(3)} has been added to your balance.`);
-          setTimeout(() => setWithdrawSuccess(null), 3000);
+          try {
+            await updateProfile({
+              balance: newBalance,
+              claimStreak: currentStreak + 1,
+              lastClaimedAt: now.toISOString()
+            });
+            setWithdrawSuccess(`Success! $${reward.toFixed(2)} added to your dashboard balance.`);
+            setTimeout(() => setWithdrawSuccess(null), 5000);
+          } catch (err) {
+            setWithdrawError("Connection error. Claim failed.");
+            setTimeout(() => setWithdrawError(null), 5000);
+          }
         };
         
         return (
@@ -254,7 +309,7 @@ export default function Dashboard() {
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isClaimed ? 'bg-verified-green text-black' : isCurrent ? 'bg-neon-blue text-black' : 'bg-white/10 text-white/20'}`}>
                         {isClaimed ? <CheckCircle2 className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
                       </div>
-                      <span className={`text-sm font-display font-black ${isClaimed ? 'text-verified-green' : isCurrent ? 'text-white' : 'text-white/20'}`}>${reward.toFixed(3)}</span>
+                      <span className={`text-sm font-display font-black ${isClaimed ? 'text-verified-green' : isCurrent ? 'text-white' : 'text-white/20'}`}>${reward.toFixed(2)}</span>
                       
                       {isClaimed && (
                         <div className="absolute top-2 right-2">
@@ -342,7 +397,8 @@ export default function Dashboard() {
             </div>
           </div>
         );
-      case 'Active Missions':
+      }
+      case 'Active Missions': {
         return (
           <div className="space-y-8">
             <div className="glass-card p-8">
@@ -422,19 +478,75 @@ export default function Dashboard() {
             </div>
           </div>
         );
-      case 'Wallet':
-        const handleWithdraw = () => {
+      }
+      case 'Wallet': {
+        const now = new Date();
+        const lastWithdrawal = profile?.lastWithdrawalAt ? new Date(profile.lastWithdrawalAt) : null;
+        const diffMs = lastWithdrawal ? now.getTime() - lastWithdrawal.getTime() : Infinity;
+
+        const effectiveDaily = diffMs > 86400000 ? 0 : (profile?.dailyWithdrawn || 0);
+        const effectiveWeekly = diffMs > 604800000 ? 0 : (profile?.weeklyWithdrawn || 0);
+        const effectiveMonthly = diffMs > 2592000000 ? 0 : (profile?.monthlyWithdrawn || 0);
+
+        const handleWithdraw = async () => {
           setWithdrawError(null);
           setWithdrawSuccess(null);
-          if ((profile?.balance || 0) < 5) {
+          
+          const amount = parseFloat(withdrawAmount);
+          if (isNaN(amount) || amount <= 0) {
+             setWithdrawError("Please enter a valid amount to withdraw.");
+             return;
+          }
+
+          if (amount < 5) {
             setWithdrawError("Minimum withdrawal amount is $5.00. Earn more to cash out.");
             return;
           }
+
+          if (amount > (profile?.balance || 0)) {
+            setWithdrawError("Insufficient balance for this withdrawal.");
+            return;
+          }
+
           if (!withdrawalAddress) {
             setWithdrawError("Please enter a valid withdrawal address.");
             return;
           }
-          setWithdrawSuccess("Withdrawal request submitted! Payout processing typically takes 24-48 hours.");
+
+          const currentDaily = effectiveDaily;
+          const currentWeekly = effectiveWeekly;
+          const currentMonthly = effectiveMonthly;
+
+          const dailyRemaining = limits.daily - currentDaily;
+          const weeklyRemaining = limits.weekly - currentWeekly;
+          const monthlyRemaining = limits.monthly - currentMonthly;
+
+          if (amount > dailyRemaining) {
+            setWithdrawError(`Daily limit exceeded. You can withdraw $${dailyRemaining.toFixed(2)} more today. Your daily limit is $${limits.daily.toFixed(0)} based on your ${trustScore}% Trust Score.`);
+            return;
+          }
+          if (amount > weeklyRemaining) {
+            setWithdrawError(`Weekly limit exceeded. You can withdraw $${weeklyRemaining.toFixed(2)} more this week. Your weekly limit is $${limits.weekly.toFixed(0)} based on your ${trustScore}% Trust Score.`);
+            return;
+          }
+          if (amount > monthlyRemaining) {
+            setWithdrawError(`Monthly limit exceeded. You can withdraw $${monthlyRemaining.toFixed(2)} more this month. Your monthly limit is $${limits.monthly.toFixed(0)} based on your ${trustScore}% Trust Score.`);
+            return;
+          }
+
+          try {
+            await updateProfile({
+              balance: (profile?.balance || 0) - amount,
+              dailyWithdrawn: currentDaily + amount,
+              weeklyWithdrawn: currentWeekly + amount,
+              monthlyWithdrawn: currentMonthly + amount,
+              lastWithdrawalAt: now.toISOString()
+            });
+            setWithdrawSuccess(`Success! Withdrawal request for $${amount.toFixed(2)} has been submitted. Payout typicall takes 24-48 hours.`);
+            setWithdrawAmount('');
+          } catch (err) {
+            setWithdrawError("Withdrawal failed due to a system error. Please try again later.");
+          }
         };
 
         return (
@@ -451,26 +563,38 @@ export default function Dashboard() {
                         animate={{ scale: 1, opacity: 1 }}
                         className="text-4xl font-display font-black italic"
                       >
-                        ${profile?.balance.toFixed(3) || '0.000'}
+                        ${profile?.balance.toFixed(2) || '0.00'}
                       </motion.h4>
                     </div>
-                    <div className="bg-neon-blue text-black p-3 rounded-xl">
+                    <div className="bg-neon-blue text-black p-3 rounded-xl hover:rotate-12 transition-transform cursor-pointer">
                       <Wallet className="w-6 h-6" />
                     </div>
                   </div>
 
                   <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1">Payment Destination</label>
-                      <input 
-                        type="text" 
-                        placeholder="PayPal Email, BTC Address, or Account Number" 
-                        value={withdrawalAddress}
-                        onChange={(e) => setWithdrawalAddress(e.target.value)}
-                        className="w-full h-14 bg-[#0F0F10] border border-white/10 rounded-xl px-6 text-sm focus:outline-none focus:border-neon-blue transition-all"
-                      />
-                      <p className="text-[10px] text-white/20 uppercase font-bold italic ml-1">Ensure this address is correct. Payments are final.</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1">Withdrawal Amount ($)</label>
+                        <input 
+                          type="number" 
+                          placeholder="Min: $5.00" 
+                          value={withdrawAmount}
+                          onChange={(e) => setWithdrawAmount(e.target.value)}
+                          className="w-full h-14 bg-[#0F0F10] border border-white/10 rounded-xl px-6 text-sm focus:outline-none focus:border-neon-blue transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1">Payment Destination</label>
+                        <input 
+                          type="text" 
+                          placeholder="Email or Wallet Address" 
+                          value={withdrawalAddress}
+                          onChange={(e) => setWithdrawalAddress(e.target.value)}
+                          className="w-full h-14 bg-[#0F0F10] border border-white/10 rounded-xl px-6 text-sm focus:outline-none focus:border-neon-blue transition-all"
+                        />
+                      </div>
                     </div>
+                    <p className="text-[10px] text-white/20 uppercase font-bold italic ml-1">Ensure your details are correct. All transactions are screened for security.</p>
 
                     <div className="space-y-4">
                       <button 
@@ -505,6 +629,55 @@ export default function Dashboard() {
                         )}
                       </AnimatePresence>
                     </div>
+                  </div>
+                </div>
+
+                <div className="glass-card p-6">
+                  <h3 className="text-xs font-display font-bold uppercase tracking-widest mb-6">Withdrawal Limits</h3>
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                        <span className="text-white/40">Daily Limit</span>
+                        <span className="text-neon-blue">${Number(effectiveDaily).toFixed(2)} / ${limits.daily.toFixed(2)}</span>
+                      </div>
+                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, (effectiveDaily / limits.daily) * 100)}%` }}
+                          className="h-full bg-neon-blue"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                        <span className="text-white/40">Weekly Limit</span>
+                        <span className="text-status-blue">${Number(effectiveWeekly).toFixed(2)} / ${limits.weekly.toFixed(2)}</span>
+                      </div>
+                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, (effectiveWeekly / limits.weekly) * 100)}%` }}
+                          className="h-full bg-status-blue"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                        <span className="text-white/40">Monthly Limit</span>
+                        <span className="text-white/60">${Number(effectiveMonthly).toFixed(2)} / ${limits.monthly.toFixed(2)}</span>
+                      </div>
+                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, (effectiveMonthly / limits.monthly) * 100)}%` }}
+                          className="h-full bg-white/20"
+                        />
+                      </div>
+                    </div>
+                    
+                    <p className="text-[8px] text-white/20 uppercase font-bold text-center italic">Limits are based on your Trust Score ({trustScore}%)</p>
                   </div>
                 </div>
 
@@ -566,23 +739,107 @@ export default function Dashboard() {
             </div>
           </div>
         );
-      case 'Referrals':
+      }
+      case 'Referrals': {
+        const referralCode = profile?.referralCode || profile?.username?.toUpperCase() || 'XG-REFER';
+        
+        const copyToClipboard = (text: string) => {
+          navigator.clipboard.writeText(text);
+          setWithdrawSuccess("Copied to clipboard!");
+          setTimeout(() => setWithdrawSuccess(null), 3000);
+        };
+
         return (
           <div className="space-y-8">
             <div className="glass-card p-10 bg-gradient-to-br from-neon-blue/20 to-transparent relative overflow-hidden group">
-              <h3 className="text-4xl font-display font-black italic mb-4 uppercase">Multipy Your Legacy</h3>
-              <p className="text-white/50 text-lg max-w-md mb-8">Earn a <span className="text-neon-blue font-bold">15% lifetime commission</span> from every offer your referrals complete.</p>
-              
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 h-16 bg-[#0F0F10] border border-white/10 rounded-xl flex items-center px-6 text-sm font-mono text-white/60">
-                  xgamer.com/ref?user={profile?.username?.toLowerCase() || 'gamer'}
+              <div className="relative z-10">
+                <h3 className="text-4xl font-display font-black italic mb-4 uppercase leading-none">Multiply Your Legacy</h3>
+                <p className="text-white/50 text-lg max-w-md mb-8">Earn a <span className="text-neon-blue font-bold">15% lifetime commission</span> from every offer your referrals complete.</p>
+                
+                <div className="grid md:grid-cols-2 gap-8 items-end">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 ml-1">Your Referral Code</label>
+                    <div className="flex gap-2">
+                      <div className="flex-1 h-14 bg-black/40 border border-white/10 rounded-xl flex items-center px-6 text-xl font-display font-bold text-neon-blue tracking-widest uppercase">
+                        {referralCode}
+                      </div>
+                      <button 
+                        onClick={() => copyToClipboard(referralCode)}
+                        className="h-14 px-8 bg-neon-blue text-black rounded-xl font-display font-black uppercase tracking-widest text-[10px] hover:bg-blue-glow transition-all active:scale-95"
+                      >
+                        Copy Code
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 ml-1">Referral Link</label>
+                    <div className="flex gap-2">
+                       <div className="flex-1 h-14 bg-black/40 border border-white/10 rounded-xl flex items-center px-6 text-[10px] font-mono text-white/40 truncate">
+                         xgamer.com/join?ref={referralCode}
+                       </div>
+                       <button 
+                        onClick={() => copyToClipboard(`https://xgamer.com/join?ref=${referralCode}`)}
+                        className="h-14 w-14 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center hover:bg-white/10 transition-all active:scale-95"
+                       >
+                         <Send className="w-4 h-4 text-white/60" />
+                       </button>
+                    </div>
+                  </div>
                 </div>
-                <button className="h-16 px-10 bg-neon-blue text-black rounded-xl font-display font-black uppercase tracking-widest text-xs">Copy</button>
               </div>
+
+              {/* Background Decoration */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-neon-blue/5 blur-[80px] -z-0" />
+              <div className="absolute -bottom-20 -right-20 w-80 h-80 border-8 border-white/[0.02] rounded-full -z-0" />
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                { label: 'Total Referrals', value: '12', icon: Users, color: 'neon-blue' },
+                { label: 'Network XP', value: '45,200', icon: Award, color: 'status-blue' },
+                { label: 'Total Commission', value: '$128.50', icon: Wallet, color: 'verified-green' }
+              ].map((stat, i) => (
+                <div key={i} className="glass-card p-6">
+                  <div className={`w-10 h-10 rounded-lg bg-${stat.color}/10 flex items-center justify-center mb-4`}>
+                    <stat.icon className={`w-5 h-5 text-${stat.color}`} />
+                  </div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 mb-1">{stat.label}</p>
+                  <h4 className="text-2xl font-display font-bold tracking-tight">{stat.value}</h4>
+                </div>
+              ))}
+            </div>
+
+            <div className="glass-card p-8">
+               <h3 className="text-xs font-display font-bold uppercase tracking-widest mb-8">Active Referral Network</h3>
+               <div className="space-y-4">
+                 {[
+                   { name: 'PlayerOne', earned: '$45.20', commission: '$6.78', status: 'Active' },
+                   { name: 'X_Ghost', earned: '$12.00', commission: '$1.80', status: 'Idle' },
+                   { name: 'GamerGirl99', earned: '$89.50', commission: '$13.43', status: 'Active' }
+                 ].map((ref, i) => (
+                   <div key={i} className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
+                     <div className="flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                         <User className="w-4 h-4 text-white/40" />
+                       </div>
+                       <div>
+                         <h5 className="text-sm font-bold">{ref.name}</h5>
+                         <span className={`text-[8px] font-black uppercase ${ref.status === 'Active' ? 'text-verified-green' : 'text-white/20'}`}>{ref.status}</span>
+                       </div>
+                     </div>
+                     <div className="text-right">
+                       <span className="block text-xs font-bold text-white/40">Total Earned: {ref.earned}</span>
+                       <span className="text-[10px] font-black italic text-neon-blue">Your Cut: {ref.commission}</span>
+                     </div>
+                   </div>
+                 ))}
+               </div>
             </div>
           </div>
         );
-      case 'Leaderboard':
+      }
+      case 'Leaderboard': {
         return (
           <div className="space-y-8">
             <div className="glass-card p-8">
@@ -591,7 +848,14 @@ export default function Dashboard() {
                 {[
                   { rank: 1, name: 'CyberDemon', xp: '1.2M', level: 85 },
                   { rank: 2, name: 'NeonKnight', xp: '980K', level: 78 },
-                  { rank: 3, name: 'VibeCheck', xp: '850K', level: 72 }
+                  { rank: 3, name: 'VibeCheck', xp: '850K', level: 72 },
+                  { rank: 4, name: 'ShadowEdge', xp: '720K', level: 65 },
+                  { rank: 5, name: 'PixelPaladin', xp: '680K', level: 62 },
+                  { rank: 6, name: 'GlitchHacker', xp: '540K', level: 58 },
+                  { rank: 7, name: 'ApexTitan', xp: '490K', level: 52 },
+                  { rank: 8, name: 'RogueZero', xp: '420K', level: 48 },
+                  { rank: 9, name: 'Ghost_Shell', xp: '380K', level: 45 },
+                  { rank: 10, name: 'SynthLord', xp: '310K', level: 42 }
                 ].map((user, i) => (
                   <div key={i} className="flex items-center gap-6 p-4 rounded-xl border bg-white/[0.02] border-white/5">
                     <div className="w-8 font-display font-black text-xl italic text-white/20">#{user.rank}</div>
@@ -607,26 +871,72 @@ export default function Dashboard() {
             </div>
           </div>
         );
-      case 'Transactions':
-        const transactions: any[] = []; // Empty for real usage simulation
+      }
+      case 'Transactions': {
+        const transactions = [
+          { id: 'XG-9281', title: 'Cyberpunk Challenge', amount: '$50.00', status: 'Completed', date: 'Oct 24, 2023', type: 'Earning' },
+          { id: 'XG-9280', title: 'Daily Streak Bonus', amount: '$1.00', status: 'Completed', date: 'Oct 24, 2023', type: 'Bonus' },
+          { id: 'XG-9279', title: 'PayPal Withdrawal', amount: '-$15.00', status: 'Pending', date: 'Oct 23, 2023', type: 'Withdrawal' },
+          { id: 'XG-9278', title: 'Achievement: Level 5', amount: '$5.00', status: 'Completed', date: 'Oct 22, 2023', type: 'Bonus' },
+        ];
+
         return (
           <div className="space-y-8">
-            <div className="glass-card p-8 text-center py-20">
-              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Clock className="w-8 h-8 text-white/10" />
+            <div className="glass-card p-8">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-lg font-display font-black uppercase tracking-tight">Financial Records</h3>
+                <div className="flex gap-2">
+                   <button className="px-4 py-2 bg-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-all">Export CSV</button>
+                   <button className="px-4 py-2 bg-neon-blue rounded-lg text-[10px] font-bold uppercase tracking-widest text-black">Filter by Type</button>
+                </div>
               </div>
-              <h3 className="text-lg font-display font-black uppercase tracking-tight mb-2">No Transactions Yet</h3>
-              <p className="text-white/40 text-xs max-w-xs mx-auto">Start completing offers and missions to see your transaction history here.</p>
-              <button 
-                onClick={() => setActiveTab('Offers')}
-                className="mt-8 px-8 py-3 bg-neon-blue text-black rounded-lg font-display font-bold uppercase tracking-widest text-[10px]"
-              >
-                Go to Offers
-              </button>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-white/5">
+                      <th className="pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 px-4">Transaction ID</th>
+                      <th className="pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 px-4">Description</th>
+                      <th className="pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 px-4">Amount</th>
+                      <th className="pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 px-4">Status</th>
+                      <th className="pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 px-4">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {transactions.map((tx, i) => (
+                      <tr key={i} className="hover:bg-white/[0.02] transition-colors group">
+                        <td className="py-5 px-4 text-xs font-mono text-white/40 group-hover:text-white transition-colors">{tx.id}</td>
+                        <td className="py-5 px-4">
+                          <div className="flex items-center gap-3">
+                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-white/5`}>
+                               {tx.type === 'Withdrawal' ? <Wallet className="w-4 h-4 text-warning-red" /> : <Zap className="w-4 h-4 text-neon-blue" />}
+                             </div>
+                             <span className="text-sm font-bold tracking-tight">{tx.title}</span>
+                          </div>
+                        </td>
+                        <td className={`py-5 px-4 text-sm font-display font-bold ${tx.amount.startsWith('-') ? 'text-warning-red' : 'text-verified-green'}`}>
+                          {tx.amount}
+                        </td>
+                        <td className="py-5 px-4">
+                          <span className={`px-2 py-1 rounded-full text-[8px] font-black uppercase ${tx.status === 'Completed' ? 'bg-verified-green/10 text-verified-green' : 'bg-status-blue/10 text-status-blue animate-pulse'}`}>
+                            {tx.status}
+                          </span>
+                        </td>
+                        <td className="py-5 px-4 text-[10px] font-bold text-white/20 uppercase">{tx.date}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div className="mt-8 flex justify-center">
+                 <button className="text-[10px] font-black uppercase text-white/20 hover:text-white transition-colors py-4">Load Older Records</button>
+              </div>
             </div>
           </div>
         );
-      case 'Notifications':
+      }
+      case 'Notifications': {
         return (
           <div className="space-y-8">
             <div className="glass-card p-8">
@@ -652,22 +962,65 @@ export default function Dashboard() {
             </div>
           </div>
         );
-      case 'Settings':
+      }
+      case 'Settings': {
         return (
-          <div className="space-y-8 max-w-4xl">
+          <div className="space-y-8 max-w-4xl pb-20">
             <div className="glass-card p-8">
-              <h3 className="text-xs font-display font-bold uppercase tracking-widest mb-8">Profile Configuration</h3>
-              <form className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1">Display Name</label>
-                  <input type="text" defaultValue={profile?.username} className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-neon-blue/40" />
+              <h3 className="text-xs font-display font-bold uppercase tracking-widest text-white/40 mb-8 border-b border-white/5 pb-4">Personal Configuration</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 ml-1">Display Name</label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                      <input 
+                        type="text" 
+                        defaultValue={profile?.username} 
+                        className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-neon-blue/50 transition-all font-bold" 
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 ml-1">Email Connection</label>
+                    <div className="relative opacity-60">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                      <input 
+                        type="email" 
+                        readOnly
+                        defaultValue={profile?.email} 
+                        className="w-full bg-black/20 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none cursor-not-allowed" 
+                      />
+                    </div>
+                    <p className="text-[8px] text-white/20 uppercase font-black italic ml-1">Connected via Supabase Auth</p>
+                  </div>
                 </div>
-                <button className="h-12 px-8 bg-neon-blue text-black font-bold uppercase text-[10px] tracking-widest rounded-xl">Save Changes</button>
-              </form>
+
+                <div className="space-y-6">
+                  <div className="p-6 bg-white/5 border border-white/5 rounded-2xl flex flex-col items-center text-center">
+                    <div className="w-20 h-20 rounded-full bg-white/10 overflow-hidden mb-4 border-2 border-neon-blue/20 p-1">
+                       <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.username}`} alt="Avatar" className="w-full h-full object-cover" />
+                    </div>
+                    <button className="text-[10px] font-black uppercase text-neon-blue hover:text-white transition-colors">Rotate Avatar Seed</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-10 pt-10 border-t border-white/5 flex gap-4">
+                <button className="h-14 px-10 bg-neon-blue text-black font-display font-black uppercase tracking-widest text-xs rounded-xl hover:bg-blue-glow transition-all">Save Changes</button>
+                <button className="h-14 px-10 bg-white/5 text-white/40 font-display font-bold uppercase tracking-widest text-[10px] rounded-xl hover:bg-white/10 transition-all">Cancel</button>
+              </div>
+            </div>
+
+            <div className="glass-card p-8 border-l-4 border-l-warning-red">
+               <h3 className="text-xs font-display font-bold uppercase tracking-widest text-warning-red mb-6">Danger District</h3>
+               <p className="text-xs text-white/40 mb-6 leading-relaxed">Once you delete your account, there is no going back. All earned legacy points (XP), balance, and streak progress will be permanently erased from the network.</p>
+               <button className="h-14 px-10 bg-warning-red/10 border border-warning-red/20 text-warning-red font-display font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-warning-red hover:text-white transition-all">Initiate Account Termination</button>
             </div>
           </div>
         );
-      case 'Support':
+      }
+      case 'Support': {
         return (
           <div className="space-y-8">
             <div className="grid md:grid-cols-2 gap-8">
@@ -726,6 +1079,7 @@ export default function Dashboard() {
             </div>
           </div>
         );
+      }
       default:
         return null;
     }
